@@ -4,7 +4,7 @@
       "David Precious <davidp@preshweb.co.uk>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 6.74, CPAN::Meta::Converter version 2.132140",
+   "generated_by" : "ExtUtils::MakeMaker version 6.82, CPAN::Meta::Converter version 2.120351",
    "license" : [
       "unknown"
    ],
