@@ -10,11 +10,11 @@ Dancer::Plugin::Database::Core - Shared core for D1 and D2 Database plugins
 
 =head1 VERSION
 
-Version 0.04
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 my %handles;
 # Hashref used as key for default handle, so we don't have a magic value that
@@ -97,35 +97,36 @@ sub database {
                 if ($handle->{dbh}) {
                     eval { $handle->{dbh}->disconnect }
                 }
-                return ($handle->{dbh} = _get_connection($conn_details, $logger, $hook_exec), $settings);
+
+                # Need a new handle.
+                # Fall through to the new connection codepath to get one.
             }
         }
+    }
+
+    # Get a new connection
+    $handle->{dbh} = _get_connection($conn_details, $logger, $hook_exec);
+
+    if ($handle->{dbh}) {
+
+        $handle->{last_connection_check} = time;
+        $handles{$pid_tid}{$handle_key} = $handle;
+
+        if (ref $handle_key && ref $handle_key ne ref $def_handle) {
+            # We were given a hashref of connection settings.  Shove a
+            # reference to that hashref into the handle, so that the hashref
+            # doesn't go out of scope for the life of the handle.
+            # Otherwise, that area of memory could be re-used, and, given
+            # different DB settings in a hashref that just happens to have
+            # the same address, we'll happily hand back the original handle.
+            # See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=665221
+            # Thanks to Sam Kington for suggesting this fix :)
+            $handle->{_orig_settings_hashref} = $handle_key;
+        }
+
+        return ($handle->{dbh}, $settings);
     } else {
-
-        # Get a new connection
-        $handle->{dbh} = _get_connection($conn_details, $logger, $hook_exec);
-
-        if ($handle->{dbh}) {
-
-            $handle->{last_connection_check} = time;
-            $handles{$pid_tid}{$handle_key} = $handle;
-
-            if (ref $handle_key && ref $handle_key ne ref $def_handle) {
-                # We were given a hashref of connection settings.  Shove a
-                # reference to that hashref into the handle, so that the hashref
-                # doesn't go out of scope for the life of the handle.
-                # Otherwise, that area of memory could be re-used, and, given
-                # different DB settings in a hashref that just happens to have
-                # the same address, we'll happily hand back the original handle.
-                # See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=665221
-                # Thanks to Sam Kington for suggesting this fix :)
-                $handle->{_orig_settings_hashref} = $handle_key;
-            }
-
-            return ($handle->{dbh}, $settings);
-        } else {
-            return (undef, $settings);
-        }
+        return (undef, $settings);
     }
 
 }
@@ -216,7 +217,7 @@ sub _get_connection {
             $settings->{dbname} = delete $settings->{database};
         }
 
-        for (qw(database dbname host port sid)) {
+        for (qw(database dbname host port sid server)) {
             if (exists $settings->{$_}) {
                 push @extra_args, $_ . "=" . $settings->{$_};
             }
@@ -389,7 +390,7 @@ This license does not grant you the right to use any trademark, service
 mark, tradename, or logo of the Copyright Holder.
 
 This license includes the non-exclusive, worldwide, free-of-charge
-patent license to make, have made, use, offer to sell, sell, import and
+patent license to make, have made, use, er to sell, sell, import and
 otherwise transfer the Package with respect to any patent claims
 licensable by the Copyright Holder that are necessarily infringed by the
 Package. If you institute patent litigation (including a cross-claim or

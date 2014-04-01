@@ -3,21 +3,21 @@ abstract: 'Shared core for D1 and D2 Database plugins'
 author:
   - 'David Precious <davidp@preshweb.co.uk>'
 build_requires:
-  Test::More: 0
+  Test::More: '0'
 configure_requires:
-  ExtUtils::MakeMaker: 0
+  ExtUtils::MakeMaker: '0'
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.82, CPAN::Meta::Converter version 2.120351'
+generated_by: 'ExtUtils::MakeMaker version 6.94, CPAN::Meta::Converter version 2.140640'
 license: unknown
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: Dancer-Plugin-Database-Core
 no_index:
   directory:
     - t
     - inc
 requires:
-  DBI: 0
-  perl: 5.006
-version: 0.05
+  DBI: '0'
+  perl: '5.006'
+version: '0.06'
